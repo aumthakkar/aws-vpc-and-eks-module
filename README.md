@@ -37,7 +37,7 @@ module "eks_cluster" {
   cluster_endpoint_public_access_cidrs = ["0.0.0.0/0"]
 
   eks_public_nodegroup_name       = "pht-dev-public-nodegroup"
-  public_nodegroup_ami_type       = "BOTTLEROCKET_ARM_64"
+  public_nodegroup_ami_type       = "AL2_x86_64"
   public_nodegroup_capacity_type  = "ON_DEMAND"
   public_nodegroup_disk_size      = 20
   public_nodegroup_instance_types = ["t3.large"]
@@ -48,7 +48,7 @@ module "eks_cluster" {
   public_nodegroup_max_unavail_pctage = 50
 
   eks_private_nodegroup_name       = "pht-dev-private-nodegroup
-  private_nodegroup_ami_type       = "BOTTLEROCKET_ARM_64"
+  private_nodegroup_ami_type       = "AL2_x86_64"
   private_nodegroup_capacity_type  = "ON_DEMAND"
   private_nodegroup_disk_size      = 20
   private_nodegroup_instance_types = ["t3.large"]
@@ -66,6 +66,7 @@ module "eks_cluster" {
 
 -    This module creates an AWS VPC in which it also creates an EKS cluster with EBS driver, EFS driver EKS     
      addons and a Load Balancer Ingress Controller. 
+     - In this module, both the EBS and EFS driver addons depend on the public and private EKS node groups hence it expects both these node groups to be available before they can be created.
 -    Based on the count of the number of subnets selected by the user, it can conditonally, automatically create  
      these subnets along with their IP addresses using the cidrsubnet() based on the VPC CIDR block selected. 
      -    If the user needs to use the subnet IP addresses of their choice within the VPC CIDR range, then those subnet IP addresses can be manually added in the variables/*.tfvars file in the root module by opting to provide a value of "false" to the auto_create_subnet_addresses argument of the root module.
