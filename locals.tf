@@ -33,7 +33,7 @@ locals {
         Name = "efs-sg"
       }
       ingress = {
-        ssh = {
+        nfs = {
           from        = 2049
           to          = 2049
           protocol    = "tcp"
