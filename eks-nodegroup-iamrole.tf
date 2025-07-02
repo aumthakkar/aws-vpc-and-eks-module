@@ -52,5 +52,6 @@ resource "aws_iam_role_policy_attachment" "eks-AmazonEFSCSIDriverPolicy" {
 
 resource "aws_iam_role_policy_attachment" "eks-CloudWatchAgentServerPolicy" {
   role       = aws_iam_role.eks_nodegroup_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/CloudWatchAgentServerPolicy"
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+              
 }
