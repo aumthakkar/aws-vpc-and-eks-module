@@ -31,6 +31,11 @@ module "eks_cluster" {
   cluster_name        = "pht-dev-eksdemo"
   eks_cluster_version = "1.32"
 
+  create_cloudwatch_observability_and_fluentbit_agents = true
+  create_ebs_csi_driver                                = true
+  create_efs_csi_driver                                = true
+  create_ingress_lb_controller                         = true
+
   cluster_service_ipv4_cidr            = "172.20.0.0/16"
   cluster_endpoint_private_access      = false
   cluster_endpoint_public_access       = true
@@ -64,16 +69,18 @@ module "eks_cluster" {
 
 ## Description
 
--    This module creates an AWS VPC in which it also creates an EKS cluster with EBS driver, EFS driver EKS     
-     addons and a Load Balancer Ingress Controller. 
+-    This module conditionally creates an AWS VPC in which it also creates an EKS cluster with EBS driver, EFS driver and Amazon Cloudwatch Observability     
+     addons, and a Load Balancer Ingress Controller.
+     - From the above list of addons and agents, each or all of those resources can be individually selected to be installed or abstained to be created based on the boolean value supplied to the arguments in the root module.
+         - Based on the addons/agents selected to be installed, it will also provide the right IAM permissions suitable to run them appropriately. 
      - In this module, both the EBS and EFS driver addons depend on the public and private EKS node groups hence it expects both these node groups to be available before they can be created.
--    Based on the count of the number of subnets selected by the user, it can conditonally, automatically create  
+-    Based on the count of the number of subnets selected by the user in the root module, it can conditonally, automatically create  
      these subnets along with their IP addresses using the cidrsubnet() based on the VPC CIDR block selected. 
-     -    If the user needs to use the subnet IP addresses of their choice within the VPC CIDR range, then those subnet IP addresses can be manually added in the variables/*.tfvars file in the root module by opting to provide a value of "false" to the auto_create_subnet_addresses argument of the root module.
--    These subnets are created in the automatically selected and shuffled Availability Zones. 
+     -    If the user needs to use the subnet IP addresses of their choice within the VPC CIDR range, then those subnet IP addresses can be manually added in the variables/*.tfvars file in the root module by supplying a value of "false" to the auto_create_subnet_addresses argument in the root module.
+     -    These subnets are then created in the automatically selected and shuffled Availability Zones. 
 -    This module also creates an Ingress Class with the controller as the Application Load Balancer. 
 
-## Requirements
+## Version Requirements
 
 | Name       | Version      |
 | :--------- | :----------- |
@@ -85,91 +92,84 @@ module "eks_cluster" {
 
 ## Inputs
 
-| Name                                 | Type         | Description                                                                                                                   |
-| :----------------------------------- | :----------- | :---------------------------------------------------------------------------------------------------------------------------- |
-| name_prefix                          | string       | Name prefix to assign for your resource names.                                                                                |
-|                                      |              |                                                                                                                               |
-| # VPC related Inputs                 |              |                                                                                                                               |
-| aws_region                           | string       | The AWS region for your VPC.                                                                                                  |
-| vpc_cidr                             | string       | The VPC_CIDR of your setup.                                                                                                   |
-| auto_create_subnet_addresses         | boolean      | To decide whether to automatically create subnet IP addresses.                                                                |
-| public_subnet_count                  | number       | Number of public subnets to create.                                                                                           |
-| public_subnet_cidr_addresses         | string       | To be entered manually if auto_create_subnet_addresses is set to false.                                                       |
-| private_subnet_count                 | number       | Number of private subnets to create.                                                                                          |
-| private_subnet_cidr_addresses        | string       | To be entered manually if auto_create_subnet_addresses is set to false.                                                       |
-| cluster_public_security_groups_name  | string       | Public Security Groups name.                                                                                                  |
-| cluster_public_security_groups_desc  | string       | Public Security Groups description.                                                                                           |
-| ssh_access_ips                       | string       | IP address CIDR block defined in Inboundaddresses to the public security group.                                               |
-| cluster_efs_security_group_name      | string       | EFS security group name of your cluster.                                                                                      |
-| cluster_efs_security_group_desc      | string       | EFS security group description of your cluster.                                                                               |
-|                                      |              |                                                                                                                               |
-| # EKS Cluster related Inputs         |              |                                                                                                                               |
-| cluster_name                         | string       | EKS Cluster name.                                                                                                             |
-| eks_cluster_version                  | string       | EKS Cluster version to be created.                                                                                            |
-| cluster_service_ipv4_cidr            | string       | The CIDR block to assign Kubernetes pod and service IP addresses from.                                                        |
-| cluster_endpoint_private_access      | boolean      | Whether the Amazon EKS private API server endpoint is enabled.                                                                |
-| cluster_endpoint_public_access       | boolean      | Whether the Amazon EKS private API server endpoint is enabled.                                                                |
-| cluster_endpoint_public_access_cidrs | list(string) | Indicates which list of CIDR blocks can access EKS public API aerver endpoint when enabled. EKS defaults this to "0.0.0.0/0". |
-|                                      |              |                                                                                                                               |
-| # EKS nodegroup related inputs       |              |                                                                                                                               |
-| eks_public_nodegroup_name            | string       | Name assigned to your EKS public nodegroup.                                                                                   |
-| public_nodegroup_ami_type            | string       | AMI type of the nodegroup worker node instances.                                                                              |
-| public_nodegroup_capacity_type       | string       | Type of capacity of the Node group instances. Valid values - ON_DEMAND, SPOT.                                                 |
-| public_nodegroup_disk_size           | number       | Disk size in GiB for worker nodes. Defaults to 50 for Windows and 20 for all other node groups.                               |
-| public_nodegroup_instance_types      | string       | List of instance types associated wih the Node groups Defaults to "t3.medium".                                                |
-|                                      |              |                                                                                                                               |
-| public_nodegroup_desired_size        | number       | Desired number of worker nodes.                                                                                               |
-| public_nodegroup_max_size            | number       | Maximum number of worker nodes.                                                                                               |
-| public_nodegroup_mix_size            | number       | Minimum number of worker nodes                                                                                                |
-| public_node_max_unavail_pctage       | number       | Desired max percentage of unavailable worker nodes during group update                                                        |
-|                                      |              |                                                                                                                               |
-| eks_private_nodegroup_name           | string       | Name assigned to your EKS private nodegroup.                                                                                  |
-| private_nodegroup_ami_type           | string       | AMI type of the nodegroup worker node instances.                                                                              |
-| private_nodegroup_capacity_type      | string       | Type of capacity of the Node group instances. Valid values - ON_DEMAND, SPOT.                                                 |
-| private_nodegroup_disk_size          | number       | Disk size in GiB for worker nodes. Defaults to 50 for Windows and 20 for all other node groups.                               |
-| private_nodegroup_instance_types     | string       | List of instance types associated wih the Node groups Defaults to "t3.medium".                                                |
-|                                      |              |                                                                                                                               |
-| private_nodegroup_desired_size       | number       | Desired number of worker nodes.                                                                                               |
-| private_nodegroup_max_size           | number       | Maximum number of worker nodes.                                                                                               |
-| private_nodegroup_mix_size           | number       | Minimum number of worker nodes                                                                                                |
-| private_node_max_unavail_pctage      | number       | Desired max percentage of unavailable worker nodes during group update                                                        |
-
-## Resources
-
-| Name                                               | Type        | Description                                                                                                                                                                                       |
-| :------------------------------------------------- | :---------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| # VPC Resources                                    |             |                                                                                                                                                                                                   |
-| aws_vpc.my_eks_vpc                                 | resource    | AWS VPC                                                                                                                                                                                           |
-| aws_availability_zones.aailable                    | data source | Data source to get all the possible AZ s from an AWS region                                                                                                                                       |
-| aws_subnet.pht_public_subnets                      | resource    | Public Subnets of the VPC                                                                                                                                                                         |
-| aws_route_table.public_route_table                 | resource    | Public Route Table                                                                                                                                                                                |
-| aws_internet_gateway.my_igw                        | resource    | Internet Gateway                                                                                                                                                                                  |
-| aws_subnet.pht_private_subnets                     | resource    | Private Subnets                                                                                                                                                                                   |
-| aws_default_route_tabledefault_private_route_table | resource    | Default Private Route Table                                                                                                                                                                       |
-| aws_route_table.private_route_table                | resource    | Private Route Table                                                                                                                                                                               |
-| aws_eip.nat_gw_eip                                 | resource    | NAT Gateway Elastic IP                                                                                                                                                                            |
-| aws_nat_gateway.my_nat_gateway                     | resource    | NAT Gateway                                                                                                                                                                                       |
-| aws_security_group.cluster_sg                      | resource    | AWS EKS Cluster Security Group                                                                                                                                                                    |
-|                                                    |             |                                                                                                                                                                                                   |
-| # EKS Cluster Resources                            |             |                                                                                                                                                                                                   |
-| aws_iam_role.eks_master_role                       | resource    | AWS EKS Master IAM role with AmazonEKSClusterPolicy and AmazonEKSVPCResourceController IAM Policies attached                                                                                      |
-| aws_iam_role.eks_nodegroup_role                    | resource    | AWS EKS Node Group IAM role with AmazonEKSWorkerNodePolicy, AmazonEKS_CNI_Policy, AmazonEC2ContainerRegistryReadOnly, AmazonEBSCSIDriverPolicy and AmazonEFSCSIDriverPolicy IAM Policies attached |
-| aws_iam_openid_connect_provider.oidc_provider      | resource    | AWS IAM OpenId Connect Provider                                                                                                                                                                   |
-| http.lbc_iam_policy                                | data source | Load Balancer IAM policy                                                                                                                                                                          |
-| aws_iam_role.lbc_iam_role                          | resource    | Load Balancer IAM role with an action of AssumeRolewithWebIdentity for the AWS IAM OIDC Provider Principal                                                                                        |
-| aws_eks_cluster.my_eks_cluster                     | resource    | AWS EKS cluster                                                                                                                                                                                   |
-| aws_eks_node_group.my_eks_public_nodegroup         | resource    | Public EKS Node Group                                                                                                                                                                             |
-| aws_eks_node_group.my_eks_private_nodegroup        | resource    | Private Node Group                                                                                                                                                                                |
-| aws_eks_addon.aws_ebs_csi_driver                   | resource    | EKS Addon for EBS CSI Driver                                                                                                                                                                      |
-| aws_eks_addon.aws_efs_csi_driver                   | resource    | EKS Addon for EFS CSI Driver                                                                                                                                                                      |
-| helm_release.lb_controller                         | resource    | Helm release to install the Load Balancer Controller                                                                                                                                              |
-
+| Name                                                 | Type         | Description                                                                                                                                                                                        |
+| :--------------------------------------------------- | :----------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| name_prefix                                          | string       | Name prefix to assign to your resource names.                                                                                                                                                      |
+|                                                      |              |                                                                                                                                                                                                    |
+| VPC related Inputs:                                  |              |                                                                                                                                                                                                    |
+| aws_region                                           | string       | The AWS region for your VPC.                                                                                                                                                                       |
+| vpc_cidr                                             | string       | The VPC_CIDR of your setup.                                                                                                                                                                        |
+| auto_create_subnet_addresses                         | boolean      | A value of 'true' will automatically create the subnet IP addresses, a value of 'false' will abstain from creating the subnet IP addressses.                                                       |
+| public_subnet_count                                  | number       | Number of public subnets to create.                                                                                                                                                                |
+| public_subnet_cidr_addresses                         | string       | To be entered manually if auto_create_subnet_addresses is set to false.                                                                                                                            |
+| private_subnet_count                                 | number       | Number of private subnets to create.                                                                                                                                                               |
+| private_subnet_cidr_addresses                        | string       | To be entered manually if auto_create_subnet_addresses is set to false.                                                                                                                            |
+| cluster_public_security_groups_name                  | string       | Public Security Groups name.                                                                                                                                                                       |
+| cluster_public_security_groups_desc                  | string       | Public Security Groups description.                                                                                                                                                                |
+| ssh_access_ips                                       | string       | IP address CIDR block defined in Inboundaddresses to the public security group.                                                                                                                    |
+| cluster_efs_security_group_name                      | string       | EFS security group name of your cluster.                                                                                                                                                           |
+| cluster_efs_security_group_desc                      | string       | EFS security group description of your cluster.                                                                                                                                                    |
+|                                                      |              |                                                                                                                                                                                                    |
+| EKS Cluster related Inputs:                          |              |                                                                                                                                                                                                    |
+| cluster_name                                         | string       | EKS Cluster name.                                                                                                                                                                                  |
+| eks_cluster_version                                  | string       | EKS Cluster version to be created.                                                                                                                                                                 |
+|                                                      |              |                                                                                                                                                                                                    |
+| create_cloudwatch_observability_and_fluentbit_agents | boolean      | A value of 'true' will create the CloudWatch and Fluentbit Agents, and a value of 'false' will abstain from creating them.                                                                         |
+| create_ebs_csi_driver                                | boolean      | A value of 'true' will create the EBS CSI Driver, and a value of 'false' will abstain from creating it.                                                                                            |
+| create_efs_csi_driver                                | boolean      | A value of 'true' will create the EFS CSI Driver, and a value of 'false' will abstain from creating it.                                                                                            |
+| create_ingress_lb_controller                         | boolean      | A value of 'true' will create the Ingress Load Balancer Controller, and a value of 'false' will abstain from creating it.                                                                          |
+|                                                      |              |                                                                                                                                                                                                    |
+| cluster_service_ipv4_cidr                            | string       | The CIDR block to assign Kubernetes pod and service IP addresses from.                                                                                                                             |
+| cluster_endpoint_private_access                      | boolean      | A value of 'true' will enable the Amazon EKS private API server endpoint and a value of 'false' will disable it.                                                                                   |
+| cluster_endpoint_public_access                       | boolean      | A value of 'true' will enable the Amazon EKS public API server endpoint and a value of 'false' will disable it.                                                                                    |
+| cluster_endpoint_public_access_cidrs                 | list(string) | Indicates which list of CIDR blocks can access EKS public API aerver endpoint when enabled. EKS defaults this to "0.0.0.0/0".                                                                      |
+|                                                      |              |                                                                                                                                                                                                    |
+| EKS nodegroup related inputs:                        |              |                                                                                                                                                                                                    |
+| eks_public_nodegroup_name                            | string       | Name assigned to your EKS public nodegroup.                                                                                                                                                        |
+| public_nodegroup_ami_type                            | string       | AMI type of the nodegroup worker node instances.                                                                                                                                                   |
+| public_nodegroup_capacity_type                       | string       | Type of capacity of the Node group instances. Valid values - ON_DEMAND, SPOT.                                                                                                                      |
+| public_nodegroup_disk_size                           | number       | Disk size in GiB for worker nodes. Defaults to 50 for Windows and 20 for all other node groups.                                                                                                    |
+| public_nodegroup_instance_types                      | string       | List of instance types associated wih the Node groups Defaults to "t3.medium".                                                                                                                     |
+|                                                      |              |                                                                                                                                                                                                    |
+| public_nodegroup_desired_size                        | number       | Desired number of worker nodes.                                                                                                                                                                    |
+| public_nodegroup_max_size                            | number       | Maximum number of worker nodes.                                                                                                                                                                    |
+| public_nodegroup_mix_size                            | number       | Minimum number of worker nodes.                                                                                                                                                                    |
+| public_node_max_unavail_pctage                       | number       | Desired max percentage of unavailable worker nodes during group update.                                                                                                                            |
+|                                                      |              |                                                                                                                                                                                                    |
+| Resources                                            |              |                                                                                                                                                                                                    |
+|                                                      |              |                                                                                                                                                                                                    |
+| Name                                                 | Type         | Description                                                                                                                                                                                        |
+| VPC Resources:                                       |              |                                                                                                                                                                                                    |
+| aws_vpc.my_eks_vpc                                   | resource     | AWS VPC.                                                                                                                                                                                           |
+| aws_availability_zones.aailable                      | data source  | Data source to get all the possible AZ s from an AWS region.                                                                                                                                       |
+| aws_subnet.pht_public_subnets                        | resource     | Public Subnets of the VPC.                                                                                                                                                                         |
+| aws_route_table.public_route_table                   | resource     | Public Route Table.                                                                                                                                                                                |
+| aws_internet_gateway.my_igw                          | resource     | Internet Gateway.                                                                                                                                                                                  |
+| aws_subnet.pht_private_subnets                       | resource     | Private Subnets.                                                                                                                                                                                   |
+| aws_default_route_tabledefault_private_route_table   | resource     | Default Private Route Table.                                                                                                                                                                       |
+| aws_route_table.private_route_table                  | resource     | Private Route Table.                                                                                                                                                                               |
+| aws_eip.nat_gw_eip                                   | resource     | NAT Gateway Elastic IP.                                                                                                                                                                            |
+| aws_nat_gateway.my_nat_gateway                       | resource     | NAT Gateway.                                                                                                                                                                                       |
+| aws_security_group.cluster_sg                        | resource     | AWS EKS Cluster Security Group.                                                                                                                                                                    |
+|                                                      |              |                                                                                                                                                                                                    |
+| EKS Cluster Resources:                               |              |                                                                                                                                                                                                    |
+| aws_iam_role.eks_master_role                         | resource     | AWS EKS Master IAM role with AmazonEKSClusterPolicy and AmazonEKSVPCResourceController IAM Policies attached.                                                                                      |
+| aws_iam_role.eks_nodegroup_role                      | resource     | AWS EKS Node Group IAM role with AmazonEKSWorkerNodePolicy, AmazonEKS_CNI_Policy, AmazonEC2ContainerRegistryReadOnly, AmazonEBSCSIDriverPolicy and AmazonEFSCSIDriverPolicy IAM Policies attached. |
+| aws_iam_openid_connect_provider.oidc_provider        | resource     | AWS IAM OpenId Connect Provider.                                                                                                                                                                   |
+| http.lbc_iam_policy                                  | data source  | Load Balancer IAM policy.                                                                                                                                                                          |
+| aws_iam_role.lbc_iam_role                            | resource     | Load Balancer IAM role with an action of AssumeRolewithWebIdentity for the AWS IAM OIDC Provider Principal.                                                                                        |
+| aws_eks_cluster.my_eks_cluster                       | resource     | AWS EKS cluster.                                                                                                                                                                                   |
+| aws_eks_node_group.my_eks_public_nodegroup           | resource     | Public EKS Node Group.                                                                                                                                                                             |
+| aws_eks_node_group.my_eks_private_nodegroup          | resource     | Private Node Group.                                                                                                                                                                                |
+| aws_eks_addon.aws_ebs_csi_driver                     | resource     | EKS Addon for EBS CSI Driver.                                                                                                                                                                      |
+| aws_eks_addon.aws_efs_csi_driver                     | resource     | EKS Addon for EFS CSI Driver.                                                                                                                                                                      |
+| helm_release.lb_controller                           | resource     | Helm release to install the Load Balancer Controller.                                                                                                                                              |
 
 ## Outputs
 
 | Name                                             | Type         | Description                                                                                                                                                     |
 | :----------------------------------------------- | :----------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| # VPC related Outputs                            |              |                                                                                                                                                                 |
+| VPC related Outputs:                             |              |                                                                                                                                                                 |
 | vpc_id                                           | string       | VPC identifier.                                                                                                                                                 |
 | public_subnets                                   | list(string) | List of public subnets.                                                                                                                                         |
 | private_subnets                                  | list(string) | List of private subnets.                                                                                                                                        |
@@ -179,7 +179,7 @@ module "eks_cluster" {
 | igw_id                                           | string       | Internet Gateway ID.                                                                                                                                            |
 | lbc_helm_metadata                                | list(object) | Metadata block outlining the status of the deployed release.                                                                                                    |
 |                                                  |              |                                                                                                                                                                 |
-| #EKS Cluster related Outputs                     |              |                                                                                                                                                                 |
+| EKS Cluster related Outputs:                     |              |                                                                                                                                                                 |
 | cluster_id                                       | string       | The name/id of the EKS cluster.                                                                                                                                 |
 | cluster_endpoint                                 | string       | The endpoint of your EKS Kubernetes API.                                                                                                                        |
 | cluster_arn                                      | string       | The ARN of the EKS cluster.                                                                                                                                     |
@@ -197,16 +197,15 @@ module "eks_cluster" {
 | node_group_private_arn                           | string       | Private Node Group ARN.                                                                                                                                         |
 | node_group_private_status                        | string       | Private Node Group status.                                                                                                                                      |
 | node_group_private_version                       | string       | Private Node Group Kubernetes Version.                                                                                                                          |
-| # EKS IRSA related Outputs                       |              |                                                                                                                                                                 |
+|                                                  |              |                                                                                                                                                                 |
+| EKS IRSA related Outputs:                        |              |                                                                                                                                                                 |
 | aws_iam_openid_connect_provider_arn              | string       | OpenId Connect Provider ARN.                                                                                                                                    |
-| aws_iam_openid_connect_provider_extract_from_arn | string       | Extract of the OIDC Id part from the OpenId Connect Provider ARN                                                                                                |
-| # EKS-EBS-CSI-Addon related Outputs              |              |                                                                                                                                                                 |
-| ebs_eks_addon_arn                                | string       | EBS CSI driver ARN                                                                                                                                              |
-| ebs_eks_addon_id                                 | string       | EBS CSI driver Id                                                                                                                                               |
-| # EKS-EFS-CSI-Addon related Outputs              |              |                                                                                                                                                                 |
-| efs_eks_addon_arn                                | string       |                                                                                                                                                                 |
-| efs_eks_addon_id                                 | string       |                                                                                                                                                                 |
-
-
-
-
+| aws_iam_openid_connect_provider_extract_from_arn | string       | Extract of the OIDC Id part from the OpenId Connect Provider ARN.                                                                                               |
+|                                                  |              |                                                                                                                                                                 |
+| EKS-EBS-CSI-Addon related Outputs:                |              |                                                                                                                                                                 |
+| ebs_eks_addon_arn                                | string       | EBS CSI driver ARN.                                                                                                                                             |
+| ebs_eks_addon_id                                 | string       | EBS CSI driver Id.                                                                                                                                              |
+|                                                  |              |                                                                                                                                                                 |
+| EKS-EFS-CSI-Addon related Outputs:               |              |                                                                                                                                                                 |
+| efs_eks_addon_arn                                | string       | EFS CSI driver ARN.                                                                                                                                             |
+| efs_eks_addon_id                                 | string       | EFS CSI driver Id.                                                                                                                                              |

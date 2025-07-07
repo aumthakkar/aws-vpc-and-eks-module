@@ -34,7 +34,7 @@ resource "helm_release" "lb_controller" {
 
     {
       name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn" # results in - Annotations: eks.amazonaws.com/role-arn: arn:aws:iam::650251713601:role/web-identity-role
-      value = "${aws_iam_role.lbc_iam_role.arn}"
+      value = "${aws_iam_role.lbc_iam_role[count.index].arn}"
     },
 
     {

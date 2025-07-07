@@ -1,5 +1,7 @@
 
 data "http" "lbc_iam_policy" {
+  count = var.create_ingress_lb_controller ? 1 : 0
+
   url = "https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json"
 
   # Optional request headers
@@ -9,16 +11,20 @@ data "http" "lbc_iam_policy" {
 }
 
 resource "aws_iam_policy" "lbc_iam_policy" {
+  count = var.create_ingress_lb_controller ? 1 : 0
+
   name        = "${var.name_prefix}-lbc-iam-policy"
   path        = "/"
   description = "IAM Policy for the Load Balancer Controller"
 
-  policy = data.http.lbc_iam_policy.response_body
+  policy = data.http.lbc_iam_policy[count.index].response_body
 }
 
 
 resource "aws_iam_role" "lbc_iam_role" {
-  name = "pht-dev-web-identity-role"
+  count = var.create_ingress_lb_controller ? 1 : 0
+
+  name = "${var.name_prefix}-lbc-iam-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -43,9 +49,10 @@ resource "aws_iam_role" "lbc_iam_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "lbc_iam_role_policy_attach" {
+  count = var.create_ingress_lb_controller ? 1 : 0
 
-  policy_arn = aws_iam_policy.lbc_iam_policy.arn
-  role       = aws_iam_role.lbc_iam_role.name
+  policy_arn = aws_iam_policy.lbc_iam_policy[count.index].arn
+  role       = aws_iam_role.lbc_iam_role[count.index].name
 }
 
 

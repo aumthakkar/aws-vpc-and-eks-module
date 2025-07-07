@@ -2,7 +2,7 @@
 # === eks/eks-nodegroup-iamrole.tf ===
 
 resource "aws_iam_role" "eks_nodegroup_role" {
-  name = "eks_nodegroup_role"
+  name = "${var.name_prefix}-eks-nodegroup-role"
 
   # Terraform's "jsonencode" function converts a
   # Terraform expression result to valid JSON syntax.
@@ -21,7 +21,7 @@ resource "aws_iam_role" "eks_nodegroup_role" {
   })
 
   tags = {
-    Name = "eks-nodegroup-role"
+    Name = "${var.name_prefix}-eks-nodegroup-role"
   }
 }
 

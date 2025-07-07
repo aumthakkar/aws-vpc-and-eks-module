@@ -77,7 +77,7 @@ resource "aws_eks_node_group" "my_eks_public_nodegroup" {
   ]
 
   tags = {
-    Name = "Public-EKS-NodeGroup"
+    Name = "${var.name_prefix}-public-eks-node-group"
   }
 }
 
@@ -122,7 +122,7 @@ resource "aws_eks_node_group" "my_eks_private_nodegroup" {
   ]
 
   tags = {
-    Name = "Private-EKS-Nodegroup"
+    Name = "${var.name_prefix}-private-eks-node-group"
   }
 }
 
