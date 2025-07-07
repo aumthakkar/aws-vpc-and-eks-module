@@ -112,20 +112,20 @@ output "aws_iam_openid_connect_provider_extract_from_arn" {
 # EKS-EBS-CSI-Addon related Outputs
 
 output "ebs_eks_addon_arn" {
-  value = aws_eks_addon.aws_ebs_csi_driver.arn
+  value = aws_eks_addon.aws_ebs_csi_driver[*].arn
 }
 
 output "ebs_eks_addon_id" {
-  value = aws_eks_addon.aws_ebs_csi_driver.id
+  value = aws_eks_addon.aws_ebs_csi_driver[*].id
 }
 
 # EKS-EFS-CSI-Addon related Outputs
 output "efs_eks_addon_arn" {
-  value = aws_eks_addon.aws_efs_csi_driver.arn
+  value = aws_eks_addon.aws_efs_csi_driver[*].arn
 }
 
 output "efs_eks_addon_id" {
-  value = aws_eks_addon.aws_efs_csi_driver.id
+  value = aws_eks_addon.aws_efs_csi_driver[*].id
 }
 
 # === vpc networking/outputs.tf === 
@@ -164,6 +164,6 @@ output "igw_id" {
 
 output "lbc_helm_metadata" {
   description = "Metadata block outlining the status of the deployed release"
-  value       = helm_release.lb_controller.metadata
+  value       = helm_release.lb_controller[*].metadata
 
 }
