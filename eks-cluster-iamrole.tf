@@ -1,7 +1,7 @@
 # === eks/eks-cluster-iamrole.tf ===
 
 resource "aws_iam_role" "eks_master_role" {
-  name = "eks_master_role"
+  name = "${var.name_prefix}-eks-master-role"
 
   # Terraform's "jsonencode" function converts a tf expression result to valid JSON syntax.
   assume_role_policy = jsonencode({
@@ -19,7 +19,7 @@ resource "aws_iam_role" "eks_master_role" {
   })
 
   tags = {
-    Name = "eks-master-role"
+    Name = "${var.name_prefix}-eks-master-role"
   }
 }
 
