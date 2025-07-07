@@ -41,17 +41,23 @@ resource "aws_iam_role_policy_attachment" "eks-AmazonEC2ContainerRegistryReadOnl
 }
 
 resource "aws_iam_role_policy_attachment" "eks-AmazonEBSCSIDriverPolicy" {
+  count = var.create_ebs_csi_driver ? 1 : 0
+
   role       = aws_iam_role.eks_nodegroup_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
 }
 
 resource "aws_iam_role_policy_attachment" "eks-AmazonEFSCSIDriverPolicy" {
+  count = var.create_efs_csi_driver ? 1 : 0
+
   role       = aws_iam_role.eks_nodegroup_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEFSCSIDriverPolicy"
 }
 
 resource "aws_iam_role_policy_attachment" "eks-CloudWatchAgentServerPolicy" {
+  count = var.create_cloudwatch_observability_and_fluentbit_agents ? 1 : 0
+
   role       = aws_iam_role.eks_nodegroup_role.name
   policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
-              
+
 }
