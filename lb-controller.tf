@@ -1,6 +1,7 @@
 
 
 resource "helm_release" "lb_controller" {
+  count = var.create_ingress_lb_controller ? 1 : 0
   depends_on = [
     aws_eks_node_group.my_eks_private_nodegroup,
     aws_eks_node_group.my_eks_public_nodegroup,
