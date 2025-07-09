@@ -19,3 +19,6 @@ crash.*.log
 # Ignore the cryptographic keys
 *.pub
 *key*
+
+# Ignore macOS related hidden files 
+.DS_Store

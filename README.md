@@ -4,14 +4,14 @@
 
 ```terraform
 module "eks_cluster" {
-  source = "github.com/aumthakkar/aws-eks-module.git"
+  source = "github.com/aumthakkar/aws-vpc-and-eks-module.git"
 
-  name_prefix     = local.name
-  aws_region  = "eu-north-1"
+  name_prefix = local.name
+  aws_region  = var.aws_region
 
-  # vpc networking related values
+  # networking related values
 
-  vpc_cidr = "10.0.0.0/16"
+  vpc_cidr = var.vpc_cidr
 
   auto_create_subnet_addresses = true
 
@@ -20,15 +20,15 @@ module "eks_cluster" {
   private_subnet_count          = 2
   private_subnet_cidr_addresses = var.private_subnet_cidr_addresses
 
-  cluster_public_security_groups_name = "pht-dev-cluster-public-sg"
-  cluster_public_security_groups_desc = "pht-dev eks cluster public security group"  
+  cluster_public_security_groups_name = "${local.name}-${var.cluster_security_groups_name}"
+  cluster_public_security_groups_desc = "${local.name} ${var.cluster_public_security_groups_desc}"
   ssh_access_ips                      = var.ssh_access_ips
 
-  cluster_efs_security_group_name = "pht-dev-cluster-efs-sg"
-  cluster_efs_security_group_desc = "pht-dev eks cluster EFS security group"
+  cluster_efs_security_group_name = "${local.name}-${var.cluster_efs_security_group_name}"
+  cluster_efs_security_group_desc = "${local.name} ${var.cluster_efs_security_group_desc}"
 
   # eks-cluster related values
-  cluster_name        = "pht-dev-eksdemo"
+  cluster_name        = "${local.name}-eksdemo"
   eks_cluster_version = "1.32"
 
   create_cloudwatch_observability_and_fluentbit_agents = true
@@ -41,27 +41,27 @@ module "eks_cluster" {
   cluster_endpoint_public_access       = true
   cluster_endpoint_public_access_cidrs = ["0.0.0.0/0"]
 
-  eks_public_nodegroup_name       = "pht-dev-public-nodegroup"
-  public_nodegroup_ami_type       = "AL2_x86_64"
-  public_nodegroup_capacity_type  = "ON_DEMAND"
-  public_nodegroup_disk_size      = 20
-  public_nodegroup_instance_types = ["t3.large"]
+  eks_public_nodegroup_name           = "${local.name}-public-nodegroup" # Optional - TF will assign a random unique name
+  public_nodegroup_desired_size       = 1                                # Required
+  public_nodegroup_min_size           = 1                                # Required
+  public_nodegroup_max_size           = 2                                # Required
+  public_nodegroup_max_unavail_pctage = 50                               # Optional
 
-  public_nodegroup_desired_size       = 1
-  public_nodegroup_max_size           = 2
-  public_nodegroup_min_size           = 1
-  public_nodegroup_max_unavail_pctage = 50
+  public_nodegroup_ami_type       = "AL2_x86_64"  # Optional 
+  public_nodegroup_capacity_type  = "ON_DEMAND"   # Optional
+  public_nodegroup_disk_size      = 20            # Optional - defaults to 20 for all others but 50 for Windows
+  public_nodegroup_instance_types = ["t3.large"]  # Optional - defaults to t3.medium
 
-  eks_private_nodegroup_name       = "pht-dev-private-nodegroup
-  private_nodegroup_ami_type       = "AL2_x86_64"
-  private_nodegroup_capacity_type  = "ON_DEMAND"
-  private_nodegroup_disk_size      = 20
-  private_nodegroup_instance_types = ["t3.large"]
+  eks_private_nodegroup_name           = "${local.name}-private-nodegroup"
+  private_nodegroup_desired_size       = 1  # Required
+  private_nodegroup_min_size           = 1  # Required
+  private_nodegroup_max_size           = 2  # Required
+  private_nodegroup_max_unavail_pctage = 50 # Optional
 
-  private_nodegroup_desired_size       = 1
-  private_nodegroup_max_size           = 2
-  private_nodegroup_min_size           = 1
-  private_nodegroup_max_unavail_pctage = 50
+  private_nodegroup_ami_type       = "AL2_x86_64"  # Optional
+  private_nodegroup_capacity_type  = "ON_DEMAND"   # Optional
+  private_nodegroup_disk_size      = 20            # Optional
+  private_nodegroup_instance_types = ["t3.large"]  # Optional - defaults to t3.medium
 
 }
 
@@ -69,14 +69,14 @@ module "eks_cluster" {
 
 ## Description
 
--    This module conditionally creates an AWS VPC in which it also creates an EKS cluster with EBS driver, EFS driver and Amazon Cloudwatch Observability     
+-    This module creates an AWS VPC in which it also creates an EKS cluster with conditional selections to create an EBS driver, EFS driver, Amazon Cloudwatch Observability     
      addons, and a Load Balancer Ingress Controller.
      - From the above list of addons and agents, each or all of those resources can be individually selected to be installed or abstained to be created based on the boolean value supplied to the arguments in the root module.
-         - Based on the addons/agents selected to be installed, it will also provide the right IAM permissions suitable to run them appropriately. 
+         - Based on the addons/agents selected to be installed, it will also create the right IAM permissions suitable to run them appropriately. 
      - In this module, both the EBS and EFS driver addons depend on the public and private EKS node groups hence it expects both these node groups to be available before they can be created.
 -    Based on the count of the number of subnets selected by the user in the root module, it can conditonally, automatically create  
-     these subnets along with their IP addresses using the cidrsubnet() based on the VPC CIDR block selected. 
-     -    If the user needs to use the subnet IP addresses of their choice within the VPC CIDR range, then those subnet IP addresses can be manually added in the variables/*.tfvars file in the root module by supplying a value of "false" to the auto_create_subnet_addresses argument in the root module.
+     those subnets along with their IP addresses using the cidrsubnet() based on the VPC CIDR block selected. 
+     -    If the user needs to use the subnet IP addresses of their choice within the VPC CIDR range, then those subnet IP addresses can be manually added in the variables/*.tfvars file in the root module by supplying a value of "false" to the 'auto_create_subnet_addresses' argument in the root module.
      -    These subnets are then created in the automatically selected and shuffled Availability Zones. 
 -    This module also creates an Ingress Class with the controller as the Application Load Balancer. 
 
@@ -87,7 +87,7 @@ module "eks_cluster" {
 | terraform  | >= 1.0.0     |
 | aws        | >= 5.9       |
 | kubernetes | >= 2.7       |
-| helm       | >= 3.0.0-pre2|
+| helm       | >= 3.0.1     |
 | http       | >= 3.5       |
 
 ## Inputs
