@@ -73,7 +73,8 @@ resource "aws_eks_node_group" "my_eks_public_nodegroup" {
     aws_iam_role_policy_attachment.eks-AmazonEKS_CNI_Policy,
     aws_iam_role_policy_attachment.eks-AmazonEC2ContainerRegistryReadOnly,
     aws_iam_role_policy_attachment.eks-AmazonEBSCSIDriverPolicy,
-    aws_iam_role_policy_attachment.eks-AmazonEFSCSIDriverPolicy
+    aws_iam_role_policy_attachment.eks-AmazonEFSCSIDriverPolicy,
+    aws_iam_role_policy_attachment.eks-CloudWatchAgentServerPolicy
   ]
 
   tags = {
@@ -118,7 +119,8 @@ resource "aws_eks_node_group" "my_eks_private_nodegroup" {
     aws_iam_role_policy_attachment.eks-AmazonEKS_CNI_Policy,
     aws_iam_role_policy_attachment.eks-AmazonEC2ContainerRegistryReadOnly,
     aws_iam_role_policy_attachment.eks-AmazonEBSCSIDriverPolicy,
-    aws_iam_role_policy_attachment.eks-AmazonEFSCSIDriverPolicy
+    aws_iam_role_policy_attachment.eks-AmazonEFSCSIDriverPolicy,
+    aws_iam_role_policy_attachment.eks-CloudWatchAgentServerPolicy
   ]
 
   tags = {
