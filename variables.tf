@@ -118,20 +118,32 @@ variable "private_subnet_cidr_addresses" {
 # Cloudwatch, EBS, EFS and Load-Balancer EKS Addon related Variables
 variable "create_cloudwatch_observability_and_fluentbit_agents" {
   type        = bool
+
   description = "Variable to decide if CloudwWatch Observability Agent needs to be installed."
 }
 
 variable "create_ebs_csi_driver" {
   type        = bool
+
   description = "Variable to decide if the EBS-CSI driver needs to be installed."
 }
 
 variable "create_efs_csi_driver" {
   type        = bool
+
   description = "Variable to decide if the EFS-CSI driver needs to be installed."
 }
 
 variable "create_ingress_lb_controller" {
   type        = bool
+
   description = "Variable to decide if the Load Balancer Ingress Controller needs to be installed."
 }
+
+variable "create_external_dns_controller" {
+  type        = bool
+  
+  description = "Variable to decide if the External DNS Controller needs to be installed."
+}
+
+
