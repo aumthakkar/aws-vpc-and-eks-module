@@ -4,7 +4,7 @@ resource "helm_release" "external_dns" {
   depends_on = [aws_iam_role.ext_dns_iam_role]
 
   name      = "external-dns"
-  namespace = "kube-system"
+  namespace = "default"
 
   repository = "https://kubernetes-sigs.github.io/external-dns/"
   chart      = "external-dns"
