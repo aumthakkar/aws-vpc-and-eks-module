@@ -1,6 +1,6 @@
 
 
-## Usage:
+## Example Usage:
 
 ```terraform
 module "eks_cluster" {
@@ -10,7 +10,6 @@ module "eks_cluster" {
   aws_region  = var.aws_region
 
   # networking related values
-
   vpc_cidr = var.vpc_cidr
 
   auto_create_subnet_addresses = true
@@ -70,8 +69,7 @@ module "eks_cluster" {
 
 ## Description
 
--    This module creates an AWS VPC in which it also creates an EKS cluster with conditional selections to create an EBS driver, EFS driver, Amazon Cloudwatch Observability     
-     addons, Load Balancer Ingress Controller and External DNS Controller.
+-    This module creates an AWS VPC in which it also creates an EKS cluster with conditional selections to create an EBS driver, EFS driver, Amazon Cloudwatch Observability addons, Load Balancer Ingress Controller and External DNS Controller.
      - Apart from the all the other addons and Load Balancer Controller which are created in the kube-system namespace, the External DNS Controller is created in the default namespace.
      - From the above list of addons and agents, each or all of those resources can be individually selected to be installed or abstained to be created based on the boolean value supplied to the arguments in the root module.
      - Based on the addons/agents selected to be installed, it will also selectively create the right IAM permissions suitable to run those appropriately. 
@@ -106,9 +104,9 @@ module "eks_cluster" {
 | vpc_cidr                                             | string       | The VPC_CIDR of your setup.                                                                                                                  |
 | auto_create_subnet_addresses                         | boolean      | A value of 'true' will automatically create the subnet IP addresses, a value of 'false' will abstain from creating the subnet IP addressses. |
 | public_subnet_count                                  | number       | Number of public subnets to create.                                                                                                          |
-| public_subnet_cidr_addresses                         | string       | To be entered manually if auto_create_subnet_addresses is set to false.                                                                      |
+| public_subnet_cidr_addresses                         | list(string)       | To be entered manually if auto_create_subnet_addresses is set to false.                                                                      |
 | private_subnet_count                                 | number       | Number of private subnets to create.                                                                                                         |
-| private_subnet_cidr_addresses                        | string       | To be entered manually if auto_create_subnet_addresses is set to false.                                                                      |
+| private_subnet_cidr_addresses                        | list(string)       | To be entered manually if auto_create_subnet_addresses is set to false.                                                                      |
 | cluster_public_security_groups_name                  | string       | Public Security Groups name.                                                                                                                 |
 | cluster_public_security_groups_desc                  | string       | Public Security Groups description.                                                                                                          |
 | ssh_access_ips                                       | string       | IP address CIDR block defined in Inboundaddresses to the public security group.                                                              |
