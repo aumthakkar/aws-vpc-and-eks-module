@@ -10,7 +10,7 @@ resource "aws_eks_cluster" "my_eks_cluster" {
     aws_iam_role_policy_attachment.eks-AmazonEKSClusterPolicy,
     aws_iam_role_policy_attachment.eks-AmazonEKSVPCResourceController
   ]
-  
+
   name = var.cluster_name
 
   role_arn = aws_iam_role.eks_master_role.arn
@@ -51,7 +51,7 @@ resource "aws_eks_node_group" "my_eks_public_nodegroup" {
     aws_iam_role_policy_attachment.eks-AmazonEFSCSIDriverPolicy,
     aws_iam_role_policy_attachment.eks-CloudWatchAgentServerPolicy
   ]
-  
+
   cluster_name    = aws_eks_cluster.my_eks_cluster.name
   node_group_name = var.eks_public_nodegroup_name
   node_role_arn   = aws_iam_role.eks_nodegroup_role.arn
