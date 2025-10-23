@@ -14,7 +14,7 @@ locals {
       name        = var.cluster_public_security_groups_name
       description = var.cluster_public_security_groups_desc
       tags = {
-        Name = "public-sg"
+        Name = "${var.name_prefix}-public-sg"
       }
       ingress = {
         ssh = {
@@ -30,7 +30,7 @@ locals {
       name        = var.cluster_efs_security_group_name
       description = var.cluster_efs_security_group_desc
       tags = {
-        Name = "efs-sg"
+        Name = "${var.name_prefix}-efs-sg"
       }
       ingress = {
         nfs = {

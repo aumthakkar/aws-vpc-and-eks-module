@@ -136,12 +136,12 @@ output "vpc_id" {
 
 
 output "public_subnets" {
-  value = aws_subnet.pht_public_subnets[*].id
+  value = aws_subnet.my_public_subnets[*].id
 }
 
 
 output "private_subnets" {
-  value = aws_subnet.pht_private_subnets[*].id
+  value = aws_subnet.my_private_subnets[*].id
 }
 
 output "vpc_cidr" {

@@ -2,7 +2,7 @@
 resource "aws_iam_policy" "external_dns_iam_policy" {
   count = var.create_external_dns_controller ? 1 : 0
 
-  name        = "pht-dev-AllowExternalDNSUpdates"
+  name        = "${var.name_prefix}-AllowExternalDNSUpdates"
   path        = "/"
   description = "External DNS IAM Policy"
 
@@ -41,7 +41,7 @@ resource "aws_iam_policy" "external_dns_iam_policy" {
 resource "aws_iam_role" "ext_dns_iam_role" {
   count = var.create_external_dns_controller ? 1 : 0
 
-  name = "pht-dev-ext-dns-iam-role"
+  name = "${var.name_prefix}-ext-dns-iam-role"
 
   # Terraform's "jsonencode" function converts a Terraform expression result to valid JSON syntax.  
   assume_role_policy = jsonencode({
