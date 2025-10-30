@@ -1,7 +1,6 @@
 # Resource Helm Release
 resource "helm_release" "external_dns" {
-  count      = var.create_external_dns_controller ? 1 : 0
-  depends_on = [aws_iam_role.ext_dns_iam_role]
+  count = var.create_external_dns_controller ? 1 : 0
 
   name      = "external-dns"
   namespace = "default"
@@ -35,5 +34,7 @@ resource "helm_release" "external_dns" {
       value = "sync" # Default is 'upsert-only' which won't delete DNS records if the ingress resourse is deleted from the eks-cluster
     }
   ]
+
+  depends_on = [aws_iam_role.ext_dns_iam_role]
 
 }

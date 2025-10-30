@@ -71,7 +71,7 @@ module "eks_cluster" {
 
 -    This module creates an AWS VPC in which it also creates an EKS cluster with conditional selections to create an EBS driver, EFS driver, Amazon Cloudwatch Observability addons, Load Balancer Ingress Controller and External DNS Controller.
      - Apart from the all the other addons and Load Balancer Controller which are created in the kube-system namespace, the External DNS Controller is created in the default namespace.
-     - From the above list of addons and agents, each or all of those resources can be individually selected to be installed or abstained to be created based on the boolean value supplied to the arguments in the root module.
+     - From the above list of addons and agents, each or all of those resources can be individually selected to be installed or abstained to be created based on the boolean value supplied to their respective arguments in the root module.
      - Based on the addons/agents selected to be installed, it will also selectively create the right IAM permissions suitable to run those appropriately. 
          
 -    For the AWS VPC, based on the count of the number of subnets selected by the user in the root module, it can conditonally, automatically create those subnets along with their IP addresses using the cidrsubnet() based on the VPC CIDR block selected. 

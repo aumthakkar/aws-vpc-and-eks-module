@@ -7,10 +7,6 @@ resource "random_integer" "vpc_random_int" {
 }
 
 resource "aws_vpc" "my_eks_vpc" {
-  lifecycle {
-    create_before_destroy = true
-  }
-
   cidr_block = var.vpc_cidr
 
   enable_dns_hostnames = true
@@ -18,6 +14,10 @@ resource "aws_vpc" "my_eks_vpc" {
 
   tags = {
     Name = "${var.name_prefix}-eks-vpc-${random_integer.vpc_random_int.result}"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
@@ -117,25 +117,25 @@ resource "aws_route_table" "private_route_table" {
 }
 
 resource "aws_eip" "nat_gw_eip" {
-  depends_on = [aws_internet_gateway.my_igw]
-
   domain = "vpc"
 
   tags = {
     Name = "${var.name_prefix}-nat-gw-eip"
   }
+
+  depends_on = [aws_internet_gateway.my_igw]
 }
 
 
 resource "aws_nat_gateway" "my_nat_gateway" {
-  depends_on = [aws_internet_gateway.my_igw]
-
   allocation_id = aws_eip.nat_gw_eip.id
   subnet_id     = aws_subnet.my_public_subnets[0].id
 
   tags = {
     Name = "${var.name_prefix}-nat-gateway"
   }
+
+  depends_on = [aws_internet_gateway.my_igw]
 }
 
 
