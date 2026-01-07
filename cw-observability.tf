@@ -18,7 +18,7 @@ resource "aws_eks_addon" "amazon_cloudwatch_observability_addon" {
   preserve                    = true
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "OVERWRITE"
-  service_account_role_arn    = null # Optional so if not found here then it will use permissions from Node IAM Role
+  service_account_role_arn    = aws_iam_role.cloudwatch_irsa_role[count.index].arn # Optional so if not found here then it will use permissions from Node IAM Role
 
   depends_on = [
     aws_eks_node_group.my_eks_public_nodegroup,

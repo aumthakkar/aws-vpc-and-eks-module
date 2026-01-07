@@ -57,8 +57,8 @@ resource "aws_iam_role" "ext_dns_iam_role" {
         }
         Condition = {
           StringEquals = {
-            "${local.aws_iam_openid_connect_provider_extract}:aud" : "sts.amazonaws.com",
-            "${local.aws_iam_openid_connect_provider_extract}:sub" : "system:serviceaccount:default:external-dns"
+            "${local.aws_iam_openid_connect_provider_extract}:aud" = "sts.amazonaws.com",
+            "${local.aws_iam_openid_connect_provider_extract}:sub" = "system:serviceaccount:default:external-dns"
           }
         }
       }
