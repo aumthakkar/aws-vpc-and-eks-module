@@ -48,7 +48,7 @@ resource "aws_iam_role" "lbc_iam_role" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "lbc_iam_role_policy_attach" {
+resource "aws_iam_role_policy_attachment" "lbc_iam_role_policy_attachment" {
   count = var.create_ingress_lb_controller ? 1 : 0
 
   policy_arn = aws_iam_policy.lbc_iam_policy[count.index].arn
