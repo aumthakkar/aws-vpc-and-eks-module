@@ -1,6 +1,6 @@
 
 
-resource "kubernetes_ingress_class_v1" "ingress_class_default" {
+resource "kubernetes_ingress_class_v1" "my_default_ingress_class" {
   metadata {
     name = "${var.name_prefix}-ingress-class"
     annotations = {
@@ -12,7 +12,7 @@ resource "kubernetes_ingress_class_v1" "ingress_class_default" {
     controller = "ingress.k8s.aws/alb" # Specify this value to denote ingresses should be managed by AWS LB Controller
   }
 
-  depends_on = [helm_release.lb_controller]
+  depends_on = [helm_release.my_lb_controller]
 
 }
 

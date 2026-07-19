@@ -49,7 +49,7 @@ resource "aws_subnet" "my_public_subnets" {
 }
 
 
-resource "aws_route_table" "public_route_table" {
+resource "aws_route_table" "my_public_route_table" {
   vpc_id = aws_vpc.my_eks_vpc.id
 
   tags = {
@@ -70,13 +70,13 @@ resource "aws_internet_gateway" "my_igw" {
 resource "aws_route_table_association" "public_rt_assoc" {
   count = var.public_subnet_count
 
-  route_table_id = aws_route_table.public_route_table.id
+  route_table_id = aws_route_table.my_public_route_table.id
   subnet_id      = aws_subnet.my_public_subnets[count.index].id
 }
 
 
 resource "aws_route" "public_route" {
-  route_table_id = aws_route_table.public_route_table.id
+  route_table_id = aws_route_table.my_public_route_table.id
 
   gateway_id             = aws_internet_gateway.my_igw.id
   destination_cidr_block = "0.0.0.0/0"
@@ -99,7 +99,7 @@ resource "aws_subnet" "my_private_subnets" {
 }
 
 
-resource "aws_default_route_table" "default_private_route_table" {
+resource "aws_default_route_table" "my_default_private_route_table" {
   default_route_table_id = aws_vpc.my_eks_vpc.default_route_table_id
 
   tags = {
@@ -108,7 +108,7 @@ resource "aws_default_route_table" "default_private_route_table" {
 }
 
 
-resource "aws_route_table" "private_route_table" {
+resource "aws_route_table" "my_private_route_table" {
   vpc_id = aws_vpc.my_eks_vpc.id
 
   tags = {
@@ -116,7 +116,7 @@ resource "aws_route_table" "private_route_table" {
   }
 }
 
-resource "aws_eip" "nat_gw_eip" {
+resource "aws_eip" "my_nat_gw_eip" {
   domain = "vpc"
 
   tags = {
@@ -128,7 +128,7 @@ resource "aws_eip" "nat_gw_eip" {
 
 
 resource "aws_nat_gateway" "my_nat_gateway" {
-  allocation_id = aws_eip.nat_gw_eip.id
+  allocation_id = aws_eip.my_nat_gw_eip.id
   subnet_id     = aws_subnet.my_public_subnets[0].id
 
   tags = {
@@ -142,13 +142,13 @@ resource "aws_nat_gateway" "my_nat_gateway" {
 resource "aws_route_table_association" "private_rt_assoc" {
   count = var.private_subnet_count
 
-  route_table_id = aws_route_table.private_route_table.id
+  route_table_id = aws_route_table.my_private_route_table.id
   subnet_id      = aws_subnet.my_private_subnets[count.index].id
 }
 
 
 resource "aws_route" "private_route" {
-  route_table_id = aws_route_table.private_route_table.id
+  route_table_id = aws_route_table.my_private_route_table.id
 
   gateway_id             = aws_nat_gateway.my_nat_gateway.id
   destination_cidr_block = "0.0.0.0/0"

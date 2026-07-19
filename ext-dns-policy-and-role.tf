@@ -1,5 +1,5 @@
-# Resource: Create External DNS IAM Policy 
-resource "aws_iam_policy" "external_dns_iam_policy" {
+
+resource "aws_iam_policy" "my_ext_dns_iam_policy" {
   count = var.create_external_dns_controller ? 1 : 0
 
   name        = "${var.name_prefix}-AllowExternalDNSUpdates"
@@ -24,9 +24,7 @@ resource "aws_iam_policy" "external_dns_iam_policy" {
           "route53:ListHostedZones",
           "route53:ListResourceRecordSets"
         ],
-        "Resource" : [
-          "*"
-        ]
+        "Resource" : ["*"]
       }
     ]
   })
@@ -36,43 +34,58 @@ resource "aws_iam_policy" "external_dns_iam_policy" {
   }
 }
 
-
-# Resource: Create IAM Role 
-resource "aws_iam_role" "ext_dns_iam_role" {
+resource "aws_iam_role" "my_ext_dns_iam_role" {
   count = var.create_external_dns_controller ? 1 : 0
 
-  name = "${var.name_prefix}-ext-dns-iam-role"
+  name = "${var.name_prefix}-external-dns-controller-iam-role"
 
-  # Terraform's "jsonencode" function converts a Terraform expression result to valid JSON syntax.  
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Action = "sts:AssumeRoleWithWebIdentity"
+        Action = [
+          "sts:AssumeRole",
+          "sts:TagSession"
+        ]
         Effect = "Allow"
-        Sid    = ""
+        Sid    = "ExtDNSIAMRole"
         Principal = {
-          Federated = "${aws_iam_openid_connect_provider.oidc_provider.arn}" # Replace with your OIDC provider ARN
-          # You can further limit by Condition arg (e.g., web-identity-token)
+          Service = "pods.eks.amazonaws.com"
         }
-        Condition = {
-          StringEquals = {
-            "${local.aws_iam_openid_connect_provider_extract}:aud" = "sts.amazonaws.com",
-            "${local.aws_iam_openid_connect_provider_extract}:sub" = "system:serviceaccount:default:external-dns"
-          }
-        }
-      }
+      },
     ]
   })
+
+  tags = {
+    tag-key = "${var.name_prefix}-external-dns-controller-iam-role"
+  }
+
 }
 
-# Associate External DNS IAM Policy with IAM Role
-resource "aws_iam_role_policy_attachment" "externaldns_iam_role_policy_attachment" {
+resource "aws_iam_role_policy_attachment" "my_ext_dns_iam_role_policy_attachment" {
   count = var.create_external_dns_controller ? 1 : 0
 
-  policy_arn = aws_iam_policy.external_dns_iam_policy[count.index].arn
-  role       = aws_iam_role.ext_dns_iam_role[count.index].name
+  policy_arn = aws_iam_policy.my_ext_dns_iam_policy[count.index].arn
+  role       = aws_iam_role.my_ext_dns_iam_role[count.index].name
 }
+
+
+resource "aws_eks_pod_identity_association" "my_ext_dns_controller_eks_pia" {
+  count = var.create_external_dns_controller ? 1 : 0
+
+  cluster_name = aws_eks_cluster.my_eks_cluster.name
+
+  namespace       = "kube-system"
+  service_account = "external-dns"
+
+  role_arn = aws_iam_role.my_ext_dns_iam_role[count.index].arn
+
+  tags = {
+    Name = "${var.name_prefix}-ext-dns-pod-identity-association"
+  }
+}
+
+
 
 
 

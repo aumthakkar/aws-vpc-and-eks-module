@@ -1,6 +1,5 @@
 
-
-resource "helm_release" "lb_controller" {
+resource "helm_release" "my_lb_controller" {
   count = var.create_ingress_lb_controller ? 1 : 0
 
   name = "aws-load-balancer-controller"
@@ -28,11 +27,6 @@ resource "helm_release" "lb_controller" {
     },
 
     {
-      name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn" # results in - Annotations: eks.amazonaws.com/role-arn: arn:aws:iam::650251713601:role/web-identity-role
-      value = "${aws_iam_role.lbc_iam_role[count.index].arn}"
-    },
-
-    {
       name  = "vpcId"
       value = "${aws_vpc.my_eks_vpc.id}"
     },
@@ -49,9 +43,7 @@ resource "helm_release" "lb_controller" {
   ]
 
   depends_on = [
-    aws_eks_node_group.my_eks_private_nodegroup,
-    aws_eks_node_group.my_eks_public_nodegroup,
-    aws_iam_role_policy_attachment.lbc_iam_role_policy_attachment
+    aws_eks_pod_identity_association.my_lbc_driver_eks_pia
   ]
 }
 

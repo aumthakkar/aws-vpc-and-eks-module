@@ -4,15 +4,15 @@ locals {
 }
 
 locals {
-  public_subnet_cidr_block  = var.auto_create_subnet_addresses ? local.public_subnet_cidr : var.public_subnet_cidr_addresses
-  private_subnet_cidr_block = var.auto_create_subnet_addresses ? local.private_subnet_cidr : var.private_subnet_cidr_addresses
+  public_subnet_cidr_block  = var.auto_create_subnet_addresses ? local.public_subnet_cidr : var.custom_public_subnet_cidr_addresses
+  private_subnet_cidr_block = var.auto_create_subnet_addresses ? local.private_subnet_cidr : var.custom_private_subnet_cidr_addresses
 }
 
 locals {
   cluster_security_groups = {
     public_sg = {
-      name        = var.cluster_public_security_groups_name
-      description = var.cluster_public_security_groups_desc
+      name        = var.cluster_public_security_group_name
+      description = var.cluster_public_security_group_desc
       tags = {
         Name = "${var.name_prefix}-public-sg"
       }
@@ -44,9 +44,6 @@ locals {
   }
 }
 
-# Extract OIDC Provider from OIDC Provider ARN
 
-locals {
-  aws_iam_openid_connect_provider_extract = element(split("oidc-provider/", "${aws_iam_openid_connect_provider.oidc_provider.arn}"), 1)
-}
+
 

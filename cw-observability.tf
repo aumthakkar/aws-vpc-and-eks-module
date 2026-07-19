@@ -1,29 +1,30 @@
 
-
-data "aws_eks_addon_version" "cw_observability_latest_driver" {
+data "aws_eks_addon_version" "cloudwatch_latest_driver" {
   addon_name = "amazon-cloudwatch-observability"
 
   kubernetes_version = aws_eks_cluster.my_eks_cluster.version
   most_recent        = true
 }
 
-resource "aws_eks_addon" "amazon_cloudwatch_observability_addon" {
-  count = var.create_cloudwatch_observability_and_fluentbit_agents ? 1 : 0
+resource "aws_eks_addon" "my_cloudwatch_observability" {
+  count = var.enable_cloudwatch_observability ? 1 : 0
 
-  cluster_name = aws_eks_cluster.my_eks_cluster.id
-  addon_name   = "amazon-cloudwatch-observability"
+  cluster_name = aws_eks_cluster.my_eks_cluster.name
 
-  addon_version               = data.aws_eks_addon_version.cw_observability_latest_driver.version
-  configuration_values        = null
-  preserve                    = true
+  addon_name    = "amazon-cloudwatch-observability"
+  addon_version = data.aws_eks_addon_version.cloudwatch_latest_driver.version
+
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "OVERWRITE"
-  service_account_role_arn    = aws_iam_role.cloudwatch_irsa_role[count.index].arn # Optional so if not found here then it will use permissions from Node IAM Role
+
+  configuration_values = null
+
+  tags = {
+    Name = "${var.name_prefix}-cloudwatch-observability"
+  }
 
   depends_on = [
-    aws_eks_node_group.my_eks_public_nodegroup,
-    aws_eks_node_group.my_eks_private_nodegroup,
-    aws_iam_role_policy_attachment.eks-CloudWatchAgentServerPolicy
+    aws_eks_addon.my_eks_pod_identity_agent,
+    aws_eks_pod_identity_association.my_cloudwatch_observability_pod_identity_association
   ]
-
 }

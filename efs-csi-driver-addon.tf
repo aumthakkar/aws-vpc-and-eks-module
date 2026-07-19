@@ -1,29 +1,36 @@
 
-data "aws_eks_addon_version" "efs_latest_driver" {
+data "aws_eks_addon_version" "efs_csi_driver_latest" {
   addon_name = "aws-efs-csi-driver"
 
   kubernetes_version = aws_eks_cluster.my_eks_cluster.version
   most_recent        = true
+
 }
 
-resource "aws_eks_addon" "aws_efs_csi_driver" {
+resource "aws_eks_addon" "my_efs_csi_driver" {
   count = var.create_efs_csi_driver ? 1 : 0
 
-  cluster_name = aws_eks_cluster.my_eks_cluster.id
-  addon_name   = "aws-efs-csi-driver"
+  cluster_name = aws_eks_cluster.my_eks_cluster.name
 
-  addon_version               = data.aws_eks_addon_version.efs_latest_driver.version
-  configuration_values        = null
-  preserve                    = true
+  addon_name    = "aws-efs-csi-driver"
+  addon_version = data.aws_eks_addon_version.efs_csi_driver_latest.version
+
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "OVERWRITE"
-  service_account_role_arn    = aws_iam_role.efs_irsa_iam_role[count.index].arn # Optional so if not found here then it will use permissions from Node IAM Role
+
+  configuration_values = jsonencode({
+    controller = {
+      replicaCount = 1
+    }
+  })
+
+  tags = {
+    Name = "${var.name_prefix}-efs-csi-driver"
+  }
 
   depends_on = [
-    aws_eks_node_group.my_eks_public_nodegroup,
-    aws_eks_node_group.my_eks_private_nodegroup,
-    aws_iam_role_policy_attachment.eks-AmazonEFSCSIDriverPolicy
+    aws_eks_addon.my_eks_pod_identity_agent,
+    aws_eks_pod_identity_association.my_efs_driver_pod_identity_association
   ]
-
 }
 

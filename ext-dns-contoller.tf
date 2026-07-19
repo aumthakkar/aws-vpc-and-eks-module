@@ -1,9 +1,9 @@
-# Resource Helm Release
-resource "helm_release" "external_dns" {
+
+resource "helm_release" "my_external_dns_controller" {
   count = var.create_external_dns_controller ? 1 : 0
 
   name      = "external-dns"
-  namespace = "default"
+  namespace = "kube-system"
 
   repository = "https://kubernetes-sigs.github.io/external-dns/"
   chart      = "external-dns"
@@ -22,19 +22,17 @@ resource "helm_release" "external_dns" {
       value = "external-dns"
     },
     {
-      name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
-      value = "${aws_iam_role.ext_dns_iam_role[count.index].arn}"
-    },
-    {
-      name  = "provider.name" # Defaults to aws anyway
+      name  = "provider.name"
       value = "aws"
     },
     {
       name  = "policy"
-      value = "sync" # Default is 'upsert-only' which won't delete DNS records if the ingress resourse is deleted from the eks-cluster
+      value = "sync" # Default is 'upsert-only' which won't delete DNS records if the ingress resource is deleted from the eks-cluster
     }
   ]
 
-  depends_on = [aws_iam_role.ext_dns_iam_role]
+  depends_on = [
+    aws_iam_role_policy_attachment.my_ext_dns_iam_role_policy_attachment
+  ]
 
 }

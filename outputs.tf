@@ -1,4 +1,37 @@
 
+# === vpc networking/outputs.tf === 
+
+output "vpc_id" {
+  value = aws_vpc.my_eks_vpc.id
+}
+
+
+output "public_subnets" {
+  value = aws_subnet.my_public_subnets[*].id
+}
+
+
+output "private_subnets" {
+  value = aws_subnet.my_private_subnets[*].id
+}
+
+output "vpc_cidr" {
+  value = aws_vpc.my_eks_vpc.cidr_block
+}
+
+output "public_sg_ids" {
+  value = [aws_security_group.cluster_sg["public_sg"].id]
+}
+
+output "efs_sg_ids" {
+  value = [aws_security_group.cluster_sg["efs_sg"].id]
+}
+
+output "igw_id" {
+  value = aws_internet_gateway.my_igw.id
+}
+
+
 # === eks/outputs.tf ==== 
 
 output "cluster_id" {
@@ -32,12 +65,12 @@ output "cluster_security_group_id" {
 
 output "cluster_iam_role_name" {
   description = "IAM role name of the EKS cluster."
-  value       = aws_iam_role.eks_master_role.name
+  value       = aws_iam_role.my_eks_cluster_role.name
 }
 
 output "cluster_iam_role_arn" {
   description = "IAM role ARN of the EKS cluster."
-  value       = aws_iam_role.eks_master_role.arn
+  value       = aws_iam_role.my_eks_cluster_role.arn
 }
 
 output "cluster_oidc_issuer_url" {
@@ -93,77 +126,36 @@ output "node_group_private_version" {
 }
 
 
-# EKS IRSA related Outputs
-
-output "aws_iam_openid_connect_provider_arn" {
-  value = aws_iam_openid_connect_provider.oidc_provider.arn
-}
-
-output "aws_iam_openid_connect_provider_extract_from_arn" {
-  value = local.aws_iam_openid_connect_provider_extract
-}
-
 # EKS-EBS-CSI-Addon related Outputs
 
 output "ebs_eks_addon_arn" {
-  value = aws_eks_addon.aws_ebs_csi_driver[*].arn
+  value = aws_eks_addon.my_ebs_csi_driver[*].arn
 }
 
 output "ebs_eks_addon_id" {
-  value = aws_eks_addon.aws_ebs_csi_driver[*].id
+  value = aws_eks_addon.my_ebs_csi_driver[*].id
 }
 
 # EKS-EFS-CSI-Addon related Outputs
 output "efs_eks_addon_arn" {
-  value = aws_eks_addon.aws_efs_csi_driver[*].arn
+  value = aws_eks_addon.my_efs_csi_driver[*].arn
 }
 
 output "efs_eks_addon_id" {
-  value = aws_eks_addon.aws_efs_csi_driver[*].id
+  value = aws_eks_addon.my_efs_csi_driver[*].id
 }
 
-# === vpc networking/outputs.tf === 
-
-output "vpc_id" {
-  value = aws_vpc.my_eks_vpc.id
-}
-
-
-output "public_subnets" {
-  value = aws_subnet.my_public_subnets[*].id
-}
-
-
-output "private_subnets" {
-  value = aws_subnet.my_private_subnets[*].id
-}
-
-output "vpc_cidr" {
-  value = aws_vpc.my_eks_vpc.cidr_block
-}
-
-output "public_sg_ids" {
-  value = [aws_security_group.cluster_sg["public_sg"].id]
-}
-
-output "efs_sg_ids" {
-  value = [aws_security_group.cluster_sg["efs_sg"].id]
-}
-
-output "igw_id" {
-  value = aws_internet_gateway.my_igw.id
-}
 
 # lbc Helm metadata outputs
 
 output "lbc_helm_metadata" {
-  value = helm_release.lb_controller[*].metadata
+  value = helm_release.my_lb_controller[*].metadata
 
   description = "Metadata block outlining the status of the deployed Load Balancer Controller release."
 }
 
 output "ext_dns_helm_metadata" {
-  value = helm_release.external_dns[*].metadata
+  value = helm_release.my_external_dns_controller[*].metadata
 
   description = "Metadata block outlining the status of the deployed External DNS Controller release."
 }
