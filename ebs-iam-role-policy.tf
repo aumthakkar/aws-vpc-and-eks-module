@@ -33,20 +33,7 @@ resource "aws_iam_role_policy_attachment" "eks_AmazonEBSCSIDriverPolicy" {
 
 }
 
-resource "aws_eks_pod_identity_association" "my_ebs_driver_pod_identity_association" {
-  count = var.create_ebs_csi_driver ? 1 : 0
 
-  cluster_name = aws_eks_cluster.my_eks_cluster.name
-
-  namespace       = "kube-system"
-  service_account = "ebs-csi-controller-sa"
-
-  role_arn = aws_iam_role.my_ebs_csi_iam_role[count.index].arn
-
-  tags = {
-    Name = "${var.name_prefix}-ebs-csi-driver-pod-identity-association"
-  }
-}
 
 
 

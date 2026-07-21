@@ -32,7 +32,9 @@ resource "helm_release" "my_external_dns_controller" {
   ]
 
   depends_on = [
-    aws_iam_role_policy_attachment.my_ext_dns_iam_role_policy_attachment
+    aws_iam_role_policy_attachment.my_ext_dns_iam_role_policy_attachment,
+    aws_eks_node_group.my_eks_public_nodegroup,
+    aws_eks_node_group.my_eks_private_nodegroup
   ]
 
 }

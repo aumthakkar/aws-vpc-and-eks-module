@@ -11,8 +11,17 @@ resource "aws_eks_addon" "my_cloudwatch_observability" {
 
   cluster_name = aws_eks_cluster.my_eks_cluster.name
 
+  namespace_config {
+    namespace = "kube-system"
+  }
+
   addon_name    = "amazon-cloudwatch-observability"
   addon_version = data.aws_eks_addon_version.cloudwatch_latest_driver.version
+
+  pod_identity_association {
+    role_arn        = aws_iam_role.my_cloudwatch_iam_role[count.index].arn
+    service_account = "cloudwatch-agent"
+  }
 
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "OVERWRITE"
@@ -25,6 +34,7 @@ resource "aws_eks_addon" "my_cloudwatch_observability" {
 
   depends_on = [
     aws_eks_addon.my_eks_pod_identity_agent,
-    aws_eks_pod_identity_association.my_cloudwatch_observability_pod_identity_association
+    aws_eks_node_group.my_eks_public_nodegroup,
+    aws_eks_node_group.my_eks_private_nodegroup
   ]
 }

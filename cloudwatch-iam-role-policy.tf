@@ -42,18 +42,3 @@ resource "aws_iam_role_policy_attachment" "eks_AWSXrayWriteOnlyAccess" {
   policy_arn = "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"
 
 }
-
-resource "aws_eks_pod_identity_association" "my_cloudwatch_observability_pod_identity_association" {
-  count = var.enable_cloudwatch_observability ? 1 : 0
-
-  cluster_name = aws_eks_cluster.my_eks_cluster.name
-
-  namespace       = "kube-system"
-  service_account = "cloudwatch-agent"
-
-  role_arn = aws_iam_role.my_cloudwatch_iam_role[count.index].arn
-
-  tags = {
-    Name = "${var.name_prefix}-cloudwatch-observability-pod-identity-association"
-  }
-}

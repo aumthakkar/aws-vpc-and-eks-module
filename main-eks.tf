@@ -49,12 +49,7 @@ resource "aws_eks_node_group" "my_eks_public_nodegroup" {
     min_size     = var.public_nodegroup_min_size
   }
 
-  # remote_access {
-  #   ec2_ssh_key = var.public_nodegroup_key_name
-  # }
-
   update_config {
-    # max_unavailable = 1 You can use this one or the one below
     max_unavailable_percentage = var.public_nodegroup_max_unavail_pctage
   }
 
@@ -94,12 +89,7 @@ resource "aws_eks_node_group" "my_eks_private_nodegroup" {
   disk_size      = var.private_nodegroup_disk_size
   instance_types = var.private_nodegroup_instance_types
 
-  # remote_access {
-  #   ec2_ssh_key = var.private_nodegroup_key_name
-  # }
-
   update_config {
-    # max_unavailable = 1 Use any one of these 2
     max_unavailable_percentage = var.private_nodegroup_max_unavail_pctage
   }
 

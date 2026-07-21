@@ -34,7 +34,7 @@ module "eks_cluster" {
   create_ebs_csi_driver           = true
   create_efs_csi_driver           = true
   create_ingress_lb_controller    = true
-  create_external_dns_controller  = false
+  create_external_dns_controller  = true
 
   cluster_service_ipv4_cidr            = "172.20.0.0/16"
   cluster_endpoint_private_access      = false
@@ -103,7 +103,7 @@ This repository provisions a fully automated, production-ready AWS EKS cluster a
 | :--------------------------------------------------- | :----------- | :------------------------------------------------------------------------------------------------------------------------------------------- |
 | name_prefix                                          | string       | Name prefix to assign to your resource names.                                                                                                |
 |                                                      |              |                                                                                                                                              |
-| VPC related Inputs:                                  |              |                                                                                                                                              |
+| **VPC related Inputs:**                                 |              |                                                                                                                                              |
 | aws_region                                           | string       | The AWS region for your VPC.                                                                                                                 |
 | vpc_cidr                                             | string       | The VPC_CIDR of your setup.                                                                                                                  |
 | auto_create_subnet_addresses                         | boolean      | Automatically creates subnet IP addresses when set to true. Default is false. |
@@ -117,28 +117,25 @@ This repository provisions a fully automated, production-ready AWS EKS cluster a
 | cluster_efs_security_group_name                      | string       | EFS security group name of your cluster.                                                                                                     |
 | cluster_efs_security_group_desc                      | string       | EFS security group description of your cluster.                                                                                              |
 |                                                      |              |                                                                                                                                              |
-| EKS Cluster related Inputs:                          |              |                                                                                                                                              |
+| **EKS Cluster related Inputs:**                          |              |                                                                                                                                              |
 | cluster_name                                         | string       | EKS Cluster name.                                                                                                                            |
 | eks_cluster_version                                  | string       | EKS Cluster version to be created.                                                                                                           |
-|                                                      |              |                                                                                                                                              |
 | enable_cloudwatch_observability | boolean      | A value of 'true' will create the CloudWatch and Fluentbit Agents, and a value of 'false' will skip its creation.                   |
 | create_ebs_csi_driver                                | boolean      | A value of 'true' will create the EBS CSI Driver, and a value of 'false' will skip its creation.                                      |
 | create_efs_csi_driver                                | boolean      | A value of 'true' will create the EFS CSI Driver, and a value of 'false' will skip its creation.                                      |
 | create_ingress_lb_controller                         | boolean      | A value of 'true' will create the Ingress Load Balancer Controller, and a value of 'false' will skip its creation.                    |
-| create_external_dns_controller                       | boolean      | A value of 'true' will create the External DNS Controller, and a value of 'false' will skip its creation.                             |
-|                                                      |              |                                                                                                                                              |
+| create_external_dns_controller                       | boolean      | A value of 'true' will create the External DNS Controller, and a value of 'false' will skip its creation.|
 | cluster_service_ipv4_cidr                            | string       | The CIDR block to assign Kubernetes pod and service IP addresses from.                                                                       |
 | cluster_endpoint_private_access                      | boolean      | A value of 'true' will enable the Amazon EKS private API server endpoint and a value of 'false' will disable it.                             |
 | cluster_endpoint_public_access                       | boolean      | A value of 'true' will enable the Amazon EKS public API server endpoint and a value of 'false' will disable it.                              |
 | cluster_endpoint_public_access_cidrs                 | list(string) | Specifies a list of CIDR blocks allowed to access the EKS public API server endpoint when enabled. EKS defaults this value to 0.0.0.0/0."                |
 |                                                      |              |                                                                                                                                              |
-| EKS nodegroup related inputs:                        |              |                                                                                                                                              |
+| **EKS nodegroup related inputs:**                        |              |                                                                                                                                              |
 | eks_public_nodegroup_name                            | string       | Name assigned to your EKS public nodegroup.                                                                                                  |
 | public_nodegroup_ami_type                            | string       | The Amazon Machine Image (AMI) type used for the worker nodes (e.g., AL2_x86_64, BOTTLEROCKET_ARM_64).                                                                                             |
 | public_nodegroup_capacity_type                       | string       | The capacity type for the nodegroup instances. Valid values: ON_DEMAND, SPOT.                                                                |
 | public_nodegroup_disk_size                           | number       | Disk size in GiB of the worker nodes. Defaults to 50 for Windows and 20 for all other node group types.                                              |
-| public_nodegroup_instance_types                      | string       | A comma-separated list of EC2 instance types for the nodegroup. Defaults to "t3.medium".                                                               |
-|                                                      |              |                                                                                                                                              |
+| public_nodegroup_instance_types                      | string       | A comma-separated list of EC2 instance types for the nodegroup. Defaults to "t3.medium". |
 | public_nodegroup_desired_size                        | number       | Desired number of worker nodes.                                                                                                              |
 | public_nodegroup_max_size                            | number       | Maximum number of worker nodes.                                                                                                              |
 | public_nodegroup_min_size                            | number       | Minimum number of worker nodes.                                                                                                              |
@@ -148,7 +145,7 @@ This repository provisions a fully automated, production-ready AWS EKS cluster a
 
 | Name                                                   | Type        | Description                                                                                                                                                                                            |
 | :----------------------------------------------------- | :---------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| VPC Resources:                                         |             |                                                                                                                                                                                                        |
+| **VPC Resources:**                                         |             |                                                                                                                                                                                                        |
 | aws_vpc.my_eks_vpc                                     | resource    | AWS VPC.                                                                                                                                                                                               |
 | aws_subnet.my_public_subnets                          | resource    | Public Subnets of the VPC.                                                                                                                                                                             |
 | aws_route_table.my_public_route_table                  | resource    | Public Route Table.                                                                                                                                                                                    |
@@ -182,7 +179,7 @@ This repository provisions a fully automated, production-ready AWS EKS cluster a
 
 | Name                                             | Type         | Description                                                                                                                                                     |
 | :----------------------------------------------- | :----------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| VPC related Outputs:                             |              |                                                                                                                                                                 |
+| **VPC related Outputs:**                             |              |                                                                                                                                                                 |
 | vpc_id                                           | string       | VPC identifier.                                                                                                                                                 |
 | public_subnets                                   | list(string) | List of public subnets.                                                                                                                                         |
 | private_subnets                                  | list(string) | List of private subnets.                                                                                                                                        |
@@ -191,7 +188,7 @@ This repository provisions a fully automated, production-ready AWS EKS cluster a
 | efs_sg_ids                                       | list(string) | Lit of EFS Security Group Ids.                                                                                                                                  |
 | igw_id                                           | string       | Internet Gateway ID.                                                                                                                                            |
 |                                                  |              |                                                                                                                                                                 |
-| EKS Cluster related Outputs:                     |              |                                                                                                                                                                 |
+| **EKS Cluster related Outputs:**                     |              |                                                                                                                                                                 |
 | cluster_id                                       | string       | The name/id of the EKS cluster.                                                                                                                                 |
 | cluster_endpoint                                 | string       | The endpoint of your EKS Kubernetes API.                                                                                                                        |
 | cluster_arn                                      | string       | The ARN of the EKS cluster.                                                                                                                                     |
@@ -212,10 +209,10 @@ This repository provisions a fully automated, production-ready AWS EKS cluster a
 | lbc_helm_metadata                                | list(object) | Metadata block outlining the status of the deployed Load Balancer Controller release.                                                                           |
 | ext_dns_helm_metadata                            | list(object) | Metadata block outlining the status of the deployed External DNS Controller release.                                                                            |
 |                                                  |              |                                                                                                                                                                 |
-| EKS-EBS-CSI-Addon related Outputs:                |              |                                                                                                                                                                 |
+| **EKS-EBS-CSI-Addon related Outputs:**                |              |                                                                                                                                                                 |
 | ebs_eks_addon_arn                                | string       | EBS CSI driver ARN.                                                                                                                                             |
 | ebs_eks_addon_id                                 | string       | EBS CSI driver Id.                                                                                                                                              |
 |                                                  |              |                                                                                                                                                                 |
-| EKS-EFS-CSI-Addon related Outputs:               |              |                                                                                                                                                                 |
+| **EKS-EFS-CSI-Addon related Outputs:**               |              |                                                                                                                                                                 |
 | efs_eks_addon_arn                                | string       | EFS CSI driver ARN.                                                                                                                                             |
 | efs_eks_addon_id                                 | string       | EFS CSI driver Id.                                                                                                                                              |

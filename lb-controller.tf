@@ -43,7 +43,9 @@ resource "helm_release" "my_lb_controller" {
   ]
 
   depends_on = [
-    aws_eks_pod_identity_association.my_lbc_driver_eks_pia
+    aws_eks_pod_identity_association.my_lbc_driver_eks_pia,
+    aws_eks_node_group.my_eks_public_nodegroup,
+    aws_eks_node_group.my_eks_private_nodegroup
   ]
 }
 
